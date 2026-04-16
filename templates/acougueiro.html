@@ -16,6 +16,15 @@
 <body>
     <div class="card">
         <h1>🥩 Alertas do seu Açougue Inteligente</h1>
+        <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+    <h3>➕ Adicionar Novo Item</h3>
+    <form action="/adicionar_estoque" method="post" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" name="nome" placeholder="Nome da Carne" required style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="number" name="quantidade" step="0.01" placeholder="Quantidade (Kg)" required style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <input type="number" name="preco" step="0.01" placeholder="Preço/Kg" required style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <button type="submit" style="background: #d32f2f; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Cadastrar Carne</button>
+    </form>
+</div>
         
         <h3>💡 Sugestões da IA:</h3>
         {% for aviso in avisos %}
