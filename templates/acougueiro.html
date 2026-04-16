@@ -16,6 +16,28 @@
 <body>
     <div class="card">
         <h1>🥩 Alertas do seu Açougue Inteligente</h1>
+        <div style="margin: 20px 0;">
+    <button onclick="pedirSugestao()" style="background: #ffc107; color: black; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        ✨ Pedir Sugestão da IA
+    </button>
+</div>
+
+<div id="campo-ia" style="background: #fff3cd; padding: 15px; border-radius: 8px; display: none;">
+    <p id="texto-ia"></p>
+</div>
+
+<script>
+async function pedirSugestao() {
+    const response = await fetch('/gerar_insights');
+    const data = await response.json();
+    
+    const campo = document.getElementById('campo-ia');
+    const texto = document.getElementById('texto-ia');
+    
+    campo.style.display = 'block';
+    texto.innerHTML = data.avisos.join('<br> ');
+}
+</script>
         <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
     <h3>➕ Adicionar Novo Item</h3>
     <form action="/adicionar_estoque" method="post" style="display: flex; gap: 10px; flex-wrap: wrap;">
