@@ -52,6 +52,31 @@ async def painel_cliente(request: Request):
         name="cliente.html", 
         context={"estoque": estoque_real}
     )
+    @app.get("/gerar_insights")
+async def gerar_insights():
+    try:
+        # 1. Pega o estoque atual do banco
+        res = supabase.table('estoque').select("*").execute()
+        estoque = res.data
+        
+        # 2. Lógica da IA 
+        # Integração com o Gemini...depois
+        insights = []
+        for item in estoque:
+            if item['nome'].lower() == 'frango' and item['quantidade'] > 20:
+                insights.append("Mano, o frango tá muito alto e a temperatura de Castanhal vai subir, faz uma promoção de espetinho!!")
+            
+            if item['quantidade'] < 5:
+                insights.append(f"Cuidado! O estoque de {item['nome']} está acabando. Melhor repor!")
+
+        if not insights:
+            insights = ["O estoque está equilibrado. Bom trabalho!"]
+
+        # 3. Retorna os avisos para o painel
+        return {"avisos": insights}
+        
+    except Exception as e:
+        return {"avisos": [f"Erro ao consultar a IA: {e}"]}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
