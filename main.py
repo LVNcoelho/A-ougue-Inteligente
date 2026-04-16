@@ -25,15 +25,23 @@ async def painel_acougueiro(request: Request):
         "Dica: O fim de semana está chegando, verifique o kit feijoada!"
     ]
     
-    return templates.TemplateResponse("acougueiro.html", {
-        "request": request, 
-        "estoque": estoque_real,
-        "avisos": avisos_ia
+    return templates.TemplateResponse(
+        request=request, 
+        name="acougueiro.html", 
+        context={
+            "estoque": estoque_real,
+            "avisos": avisos_ia
+        }
+    )
     })
 
 @app.get("/cliente", response_class=HTMLResponse)
 async def painel_cliente(request: Request):
-    return templates.TemplateResponse("cliente.html", {"request": request})
+    return templates.TemplateResponse(
+        request=request, 
+        name="cliente.html", 
+        context={}
+    )
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
