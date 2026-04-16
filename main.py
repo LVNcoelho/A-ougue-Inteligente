@@ -29,4 +29,8 @@ async def painel_acougueiro(request: Request):
 @app.get("/cliente", response_class=HTMLResponse)
 async def painel_cliente(request: Request):
     return templates.TemplateResponse("cliente.html", {"request": request})
+    if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
     
