@@ -6,20 +6,20 @@ import uvicorn
 
 app = FastAPI()
 
-# Forçando o diretório templates
+# Note o "templates" em minúsculo para bater com sua pasta
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/acougueiro", response_class=HTMLResponse)
 async def painel_acougueiro(request: Request):
     try:
-        # Tenta buscar os dados
+        # Busca estoque real do seu banco
         res = supabase.table('estoque').select("*").execute()
         estoque_real = res.data
-        print(f"DEBUG - Dados do estoque: {estoque_real}") # Isso vai aparecer no terminal!
     except Exception as e:
-        print(f"DEBUG - Erro no Supabase: {e}")
+        print(f"Erro no banco: {e}")
         estoque_real = []
     
+    # Insights simulados
     avisos_ia = [
         "A costelinha está com pouca saída hoje.",
         "Dica: O fim de semana está chegando, verifique o kit feijoada!"
@@ -33,7 +33,6 @@ async def painel_acougueiro(request: Request):
             "avisos": avisos_ia
         }
     )
-    })
 
 @app.get("/cliente", response_class=HTMLResponse)
 async def painel_cliente(request: Request):
