@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Açougueiro</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #d32f2f; color: white; }
+        .aviso { background: #fff3e0; border-left: 5px solid #ff9800; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🥩 Alertas do seu Açougue Inteligente</h1>
+        
+        <h3>💡 Sugestões da IA:</h3>
+        {% for aviso in avisos %}
+            <div class="aviso">{{ aviso }}</div>
+        {% endfor %}
+
+        <h3>📦 Estoque Atual:</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Corte</th>
+                    <th>Quantidade (Kg)</th>
+                    <th>Preço/Kg</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in estoque %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>R$ {{ item.preco_quilo }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
