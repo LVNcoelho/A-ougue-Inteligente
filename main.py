@@ -52,7 +52,8 @@ async def painel_cliente(request: Request):
         name="cliente.html", 
         context={"estoque": estoque_real}
     )
-    @app.get("/gerar_insights")
+
+@app.get("/gerar_insights")
 async def gerar_insights():
     try:
         # 1. Pega o estoque atual do banco
@@ -60,10 +61,9 @@ async def gerar_insights():
         estoque = res.data
         
         # 2. Lógica da IA 
-        # Integração com o Gemini...depois
         insights = []
         for item in estoque:
-            if item['nome'].lower() == 'frango' and item['quantidade'] > 20:
+            if 'frango' in item['nome'].lower() and item['quantidade'] > 20:
                 insights.append("Mano, o frango tá muito alto e a temperatura de Castanhal vai subir, faz uma promoção de espetinho!!")
             
             if item['quantidade'] < 5:
