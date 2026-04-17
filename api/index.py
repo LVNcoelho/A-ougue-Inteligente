@@ -14,9 +14,7 @@ templates = Jinja2Templates(directory=template_path)
 # --- 0. ROTA RAIZ ---
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return templates.TemplateResponse(
-        name="index.html", 
- return templates.TemplateResponse(request, "index.html")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
@@ -34,8 +32,7 @@ async def painel_acougueiro(request: Request):
         estoque_real = []
         vendas_recentes = []
     
-   return templates.TemplateResponse(request, "acougueiro.html", 
-                                     {"estoque": estoque_real, "vendas": vendas_recentes})
+    return templates.TemplateResponse("acougueiro.html", {"request": request, "estoque": estoque_real, "vendas": vendas_recentes})
 
 # --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/adicionar_estoque")
@@ -109,11 +106,10 @@ async def painel_cliente(request: Request):
     try:
         res = supabase.table('estoque').select("*").execute()
         return templates.TemplateResponse(
-            name="cliente.html", 
-            context={
-                "request": request, 
-                "estoque": res.data
-            }
+            "cliente.html", 
+            {"request": request, "estoque": res.data}
         )
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
+
+app = app
