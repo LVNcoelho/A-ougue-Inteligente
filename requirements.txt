@@ -1,5 +1,5 @@
 fastapi
-supabase
+uvicorn
 jinja2
+supabase
 python-multipart
-httpx
