@@ -5,78 +5,108 @@ from database import supabase
 import uvicorn
 
 app = FastAPI()
-
-# Configuração dos templates
 templates = Jinja2Templates(directory="templates")
 
+# --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
 async def painel_acougueiro(request: Request):
     try:
-        res = supabase.table('estoque').select("*").execute()
-        estoque_real = res.data
+        # Busca o estoque atual
+        res_estoque = supabase.table('estoque').select("*").execute()
+        estoque_real = res_estoque.data
+        
+        # Busca as últimas 5 vendas para mostrar no painel
+        res_vendas = supabase.table('historico_pedidos').select("*").order('data_venda', desc=True).limit(5).execute()
+        vendas_recentes = res_vendas.data
     except Exception as e:
-        print(f"Erro no banco: {e}")
+        print(f"Erro ao carregar dados: {e}")
         estoque_real = []
+        vendas_recentes = []
     
-    avisos_ia = [
-        "A costelinha está com pouca saída hoje.",
-        "Dica: O fim de semana está chegando, verifique o kit feijoada!"
-    ]
-    
-    return templates.TemplateResponse(
-        request=request, 
-        name="acougueiro.html", 
-        context={"estoque": estoque_real, "avisos": avisos_ia}
-    )
+    return templates.TemplateResponse("acougueiro.html", {
+        "request": request, 
+        "estoque": estoque_real,
+        "vendas": vendas_recentes
+    })
 
+# --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/adicionar_estoque")
 async def adicionar_estoque(nome: str = Form(...), quantidade: float = Form(...), preco: float = Form(...)):
-    # Envia para o Supabase
-    supabase.table('estoque').insert({
-        "nome": nome, 
-        "quantidade": quantidade, 
-        "preco_quilo": preco
-    }).execute()
-    
-    # Redireciona de volta para a página do açougueiro
+    try:
+        supabase.table('estoque').insert({
+            "nome": nome, 
+            "quantidade": quantidade, 
+            "preco_quilo": preco
+        }).execute()
+    except Exception as e:
+        print(f"Erro ao inserir estoque: {e}")
     return RedirectResponse(url="/acougueiro", status_code=303)
 
-@app.get("/cliente", response_class=HTMLResponse)
-async def painel_cliente(request: Request):
-    # Busca dados para o cliente também
-    res = supabase.table('estoque').select("*").execute()
-    estoque_real = res.data
-    
-    return templates.TemplateResponse(
-        request=request, 
-        name="cliente.html", 
-        context={"estoque": estoque_real}
-    )
+# --- 3. REGISTRAR VENDA (BAIXA ESTOQUE + SALVA HISTÓRICO) ---
+@app.post("/registrar_venda")
+async def registrar_venda(
+    nome_cliente: str = Form(...), 
+    whatsapp: str = Form(...), 
+    carne_id: int = Form(...), 
+    peso_vendido: float = Form(...)
+):
+    try:
+        # Busca os dados da carne para calcular o preço
+        carne = supabase.table('estoque').select("*").eq('id', carne_id).single().execute()
+        nome_carne = carne.data['nome']
+        preco_total = carne.data['preco_quilo'] * peso_vendido
 
+        # Salva na tabela nova que você criou (historico_pedidos)
+        supabase.table('historico_pedidos').insert({
+            "cliente_nome": nome_cliente,
+            "cliente_whatsapp": whatsapp,
+            "itens_comprados": f"{peso_vendido}kg de {nome_carne}",
+            "valor_total": preco_total
+        }).execute()
+
+        # Atualiza o estoque subtraindo o que foi vendido
+        nova_qtd = carne.data['quantidade'] - peso_vendido
+        supabase.table('estoque').update({"quantidade": nova_qtd}).eq('id', carne_id).execute()
+
+    except Exception as e:
+        print(f"Erro ao processar venda: {e}")
+    
+    return RedirectResponse(url="/acougueiro", status_code=303)
+
+# --- 4. (ESTRATÉGIAS DE VENDA) ---
 @app.get("/gerar_insights")
 async def gerar_insights():
     try:
-        # 1. Pega o estoque atual do banco
         res = supabase.table('estoque').select("*").execute()
         estoque = res.data
-        
-        # 2. Lógica da IA 
         insights = []
+        
         for item in estoque:
-            if 'frango' in item['nome'].lower() and item['quantidade'] > 20:
+            nome = item['nome'].lower()
+            qtd = float(item['quantidade'])
+            
+            # Lógica personalizada para Castanhal/SJP
+            if 'frango' in nome and qtd > 20:
                 insights.append("Mano, o frango tá muito alto e a temperatura de Castanhal vai subir, faz uma promoção de espetinho!!")
             
-            if item['quantidade'] < 5:
+            if qtd < 5:
                 insights.append(f"Cuidado! O estoque de {item['nome']} está acabando. Melhor repor!")
 
         if not insights:
             insights = ["O estoque está equilibrado. Bom trabalho!"]
-
-        # 3. Retorna os avisos para o painel
+            
         return {"avisos": insights}
-        
     except Exception as e:
-        return {"avisos": [f"Erro ao consultar a IA: {e}"]}
+        return {"avisos": [f"Erro na IA: {e}"]}
+
+# --- 5. PAINEL DO CLIENTE (CATÁLOGO) ---
+@app.get("/cliente", response_class=HTMLResponse)
+async def painel_cliente(request: Request):
+    res = supabase.table('estoque').select("*").execute()
+    return templates.TemplateResponse("cliente.html", {
+        "request": request, 
+        "estoque": res.data
+    })
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
