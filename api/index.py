@@ -6,14 +6,18 @@ import os
 
 app = FastAPI()
 
+# Configuração de caminhos para os templates
 current_dir = os.path.dirname(os.path.realpath(__file__))
 template_path = os.path.join(current_dir, "..", "templates")
 templates = Jinja2Templates(directory=template_path)
 
-# --- 0. ROTA RAIZ (Para o site abrir sem erro 500) ---
+# --- 0. ROTA RAIZ ---
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        name="index.html", 
+        context={"request": request}
+    )
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
@@ -23,7 +27,7 @@ async def painel_acougueiro(request: Request):
         res_estoque = supabase.table('estoque').select("*").execute()
         estoque_real = res_estoque.data
         
-        # Busca as últimas 5 vendas para mostrar no painel
+        # Busca as últimas 5 vendas
         res_vendas = supabase.table('historico_pedidos').select("*").order('data_venda', desc=True).limit(5).execute()
         vendas_recentes = res_vendas.data
     except Exception as e:
@@ -31,11 +35,14 @@ async def painel_acougueiro(request: Request):
         estoque_real = []
         vendas_recentes = []
     
-    return templates.TemplateResponse("acougueiro.html", {
-        "request": request, 
-        "estoque": estoque_real,
-        "vendas": vendas_recentes
-    })
+    return templates.TemplateResponse(
+        name="acougueiro.html", 
+        context={
+            "request": request, 
+            "estoque": estoque_real,
+            "vendas": vendas_recentes
+        }
+    )
 
 # --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/adicionar_estoque")
@@ -50,7 +57,7 @@ async def adicionar_estoque(nome: str = Form(...), quantidade: float = Form(...)
         print(f"Erro ao inserir estoque: {e}")
     return RedirectResponse(url="/acougueiro", status_code=303)
 
-# --- 3. REGISTRAR VENDA (BAIXA ESTOQUE + SALVA HISTÓRICO) ---
+# --- 3. REGISTRAR VENDA ---
 @app.post("/registrar_venda")
 async def registrar_venda(
     nome_cliente: str = Form(...), 
@@ -59,12 +66,10 @@ async def registrar_venda(
     peso_vendido: float = Form(...)
 ):
     try:
-        # Busca os dados da carne para calcular o preço
         carne = supabase.table('estoque').select("*").eq('id', carne_id).single().execute()
         nome_carne = carne.data['nome']
         preco_total = carne.data['preco_quilo'] * peso_vendido
 
-        # Salva na tabela historico_pedidos
         supabase.table('historico_pedidos').insert({
             "cliente_nome": nome_cliente,
             "cliente_whatsapp": whatsapp,
@@ -72,7 +77,6 @@ async def registrar_venda(
             "valor_total": preco_total
         }).execute()
 
-        # Atualiza o estoque subtraindo o que foi vendido
         nova_qtd = carne.data['quantidade'] - peso_vendido
         supabase.table('estoque').update({"quantidade": nova_qtd}).eq('id', carne_id).execute()
 
@@ -111,10 +115,12 @@ async def gerar_insights():
 async def painel_cliente(request: Request):
     try:
         res = supabase.table('estoque').select("*").execute()
-        return templates.TemplateResponse("cliente.html", {
-            "request": request, 
-            "estoque": res.data
-        })
+        return templates.TemplateResponse(
+            name="cliente.html", 
+            context={
+                "request": request, 
+                "estoque": res.data
+            }
+        )
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
-    
