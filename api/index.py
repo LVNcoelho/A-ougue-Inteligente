@@ -117,4 +117,4 @@ async def painel_cliente(request: Request):
         })
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
-        app = app
+    
