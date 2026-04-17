@@ -16,8 +16,7 @@ templates = Jinja2Templates(directory=template_path)
 async def root(request: Request):
     return templates.TemplateResponse(
         name="index.html", 
-        context={"request": request}
-    )
+ return templates.TemplateResponse(request, "index.html")
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
@@ -35,14 +34,8 @@ async def painel_acougueiro(request: Request):
         estoque_real = []
         vendas_recentes = []
     
-    return templates.TemplateResponse(
-        name="acougueiro.html", 
-        context={
-            "request": request, 
-            "estoque": estoque_real,
-            "vendas": vendas_recentes
-        }
-    )
+   return templates.TemplateResponse(request, "acougueiro.html", 
+                                     {"estoque": estoque_real, "vendas": vendas_recentes})
 
 # --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/adicionar_estoque")
