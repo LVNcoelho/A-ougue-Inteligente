@@ -8,7 +8,7 @@ app = FastAPI()
 
 # Configuração de caminhos para os templates
 current_dir = os.path.dirname(os.path.realpath(__file__))
-template_path = os.path.join(current_dir, "..", "templates")
+template_path = os.path.join(current_dir, "templates")
 templates = Jinja2Templates(directory=template_path)
 
 # --- 0. ROTA RAIZ ---
