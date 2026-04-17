@@ -1,0 +1,8 @@
+{
+  "features": {
+    "web_concurrency": 1
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/main.py" }
+  ]
+}
