@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from .database import supabase  # O ponto indica que o database.py está na mesma pasta api
+from .database import supabase  
 import os
 
 app = FastAPI()
