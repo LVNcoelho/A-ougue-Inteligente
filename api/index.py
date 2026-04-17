@@ -1,12 +1,20 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from database import supabase
+from .database import supabase  # O ponto indica que o database.py está na mesma pasta api
 import os
 
 app = FastAPI()
+
+# Ajuste do caminho dos templates para sair da pasta /api e ir para a /templates na raiz
 current_dir = os.path.dirname(os.path.realpath(__file__))
-templates = Jinja2Templates(directory=os.path.join(current_dir, "templates"))
+template_path = os.path.join(current_dir, "..", "templates")
+templates = Jinja2Templates(directory=template_path)
+
+# --- 0. ROTA RAIZ (Para o site abrir sem erro 500) ---
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
@@ -57,7 +65,7 @@ async def registrar_venda(
         nome_carne = carne.data['nome']
         preco_total = carne.data['preco_quilo'] * peso_vendido
 
-        # Salva na tabela nova que você criou (historico_pedidos)
+        # Salva na tabela historico_pedidos
         supabase.table('historico_pedidos').insert({
             "cliente_nome": nome_cliente,
             "cliente_whatsapp": whatsapp,
@@ -74,7 +82,7 @@ async def registrar_venda(
     
     return RedirectResponse(url="/acougueiro", status_code=303)
 
-# --- 4. (ESTRATÉGIAS DE VENDA) ---
+# --- 4. ESTRATÉGIAS DE VENDA (INSIGHTS) ---
 @app.get("/gerar_insights")
 async def gerar_insights():
     try:
@@ -86,7 +94,6 @@ async def gerar_insights():
             nome = item['nome'].lower()
             qtd = float(item['quantidade'])
             
-            # Lógica personalizada para Castanhal/SJP
             if 'frango' in nome and qtd > 20:
                 insights.append("Mano, o frango tá muito alto e a temperatura de Castanhal vai subir, faz uma promoção de espetinho!!")
             
@@ -103,11 +110,11 @@ async def gerar_insights():
 # --- 5. PAINEL DO CLIENTE (CATÁLOGO) ---
 @app.get("/cliente", response_class=HTMLResponse)
 async def painel_cliente(request: Request):
-    res = supabase.table('estoque').select("*").execute()
-    return templates.TemplateResponse("cliente.html", {
-        "request": request, 
-        "estoque": res.data
-    })
-
-#if __name__ == "__main__":
-  #  uvicorn.run(app, host="0.0.0.0", port=8000)
+    try:
+        res = supabase.table('estoque').select("*").execute()
+        return templates.TemplateResponse("cliente.html", {
+            "request": request, 
+            "estoque": res.data
+        })
+    except Exception as e:
+        return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
