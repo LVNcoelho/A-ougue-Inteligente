@@ -1,20 +1,19 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from .database import supabase  
+from database import supabase  # Ajustado: sem o ponto, pois está na raiz
 import os
 
 app = FastAPI()
 
-# Configuração de caminhos para os templates 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-template_path = os.path.join(current_dir, "..", "templates")
-templates = Jinja2Templates(directory=template_path)
+# --- CONFIGURAÇÃO DO CUBO ÚNICO ---
+
+templates = Jinja2Templates(directory=".")
 
 # --- 0. ROTA RAIZ ---
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    # AJUSTE: Nomes explícitos para evitar erro de dicionário
+
     return templates.TemplateResponse(
         name="index.html", 
         context={"request": request}
@@ -112,12 +111,9 @@ async def gerar_insights():
 async def painel_cliente(request: Request):
     try:
         res = supabase.table('estoque').select("*").execute()
-        # AJUSTE: Nomes explícitos para garantir o deploy no Render
         return templates.TemplateResponse(
             name="cliente.html", 
             context={"request": request, "estoque": res.data}
         )
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
-
-app = app
