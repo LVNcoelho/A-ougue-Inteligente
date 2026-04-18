@@ -7,26 +7,20 @@ import os
 app = FastAPI()
 
 # --- CONFIGURAÇÃO DO CUBO ÚNICO ---
-
 templates = Jinja2Templates(directory=".")
 
 # --- 0. ROTA RAIZ ---
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-        return templates.TemplateResponse(
-        "index.html", 
-        {"request": request}
-    )
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
 async def painel_acougueiro(request: Request):
     try:
-        # Busca o estoque atual
         res_estoque = supabase.table('estoque').select("*").execute()
         estoque_real = res_estoque.data
         
-        # Busca as últimas 5 vendas
         res_vendas = supabase.table('historico_pedidos').select("*").order('data_venda', desc=True).limit(5).execute()
         vendas_recentes = res_vendas.data
     except Exception as e:
@@ -35,8 +29,8 @@ async def painel_acougueiro(request: Request):
         vendas_recentes = []
     
     return templates.TemplateResponse(
-        name="acougueiro.html", 
-        context={"request": request, "estoque": estoque_real, "vendas": vendas_recentes}
+        "acougueiro.html", 
+        {"request": request, "estoque": estoque_real, "vendas": vendas_recentes}
     )
 
 # --- 2. CADASTRAR NOVA CARNE ---
@@ -110,9 +104,10 @@ async def gerar_insights():
 async def painel_cliente(request: Request):
     try:
         res = supabase.table('estoque').select("*").execute()
+        # AJUSTADO: Formato simplificado
         return templates.TemplateResponse(
-            name="cliente.html", 
-            context={"request": request, "estoque": res.data}
+            "cliente.html", 
+            {"request": request, "estoque": res.data}
         )
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
