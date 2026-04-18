@@ -1,6 +1,14 @@
+import os
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
-from .database import supabase 
+from supabase import create_client
+
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
+supabase = create_client(url, key)
+
+app = FastAPI()
+# ... resto do seu código das rotas abaixo ...
 
 app = FastAPI()
 
