@@ -14,7 +14,11 @@ templates = Jinja2Templates(directory=template_path)
 # --- 0. ROTA RAIZ ---
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    # AJUSTE: Nomes explícitos para evitar erro de dicionário
+    return templates.TemplateResponse(
+        name="index.html", 
+        context={"request": request}
+    )
 
 # --- 1. PAINEL DO AÇOUGUEIRO ---
 @app.get("/acougueiro", response_class=HTMLResponse)
@@ -32,7 +36,6 @@ async def painel_acougueiro(request: Request):
         estoque_real = []
         vendas_recentes = []
     
-    # AJUSTE AQUI: Use 'name=' e 'context=' para evitar o erro de 'dict' no Render
     return templates.TemplateResponse(
         name="acougueiro.html", 
         context={"request": request, "estoque": estoque_real, "vendas": vendas_recentes}
@@ -109,9 +112,10 @@ async def gerar_insights():
 async def painel_cliente(request: Request):
     try:
         res = supabase.table('estoque').select("*").execute()
+        # AJUSTE: Nomes explícitos para garantir o deploy no Render
         return templates.TemplateResponse(
-            "cliente.html", 
-            {"request": request, "estoque": res.data}
+            name="cliente.html", 
+            context={"request": request, "estoque": res.data}
         )
     except Exception as e:
         return HTMLResponse(content=f"Erro ao carregar catálogo: {e}", status_code=500)
