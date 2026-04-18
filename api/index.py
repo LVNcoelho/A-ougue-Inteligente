@@ -1,7 +1,23 @@
 import os
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
-from supabase import create_client
+from supabase import create_client, Client
+from httpx import SyncHTTPTransport 
+
+# CONFIGURAÇÃO DE ELITE PARA VERCEL
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
+
+supabase = create_client(url, key)
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 1. PEGAR AS VARIÁVEIS (Direto do ambiente do Vercel)
 url = os.environ.get("SUPABASE_URL")
