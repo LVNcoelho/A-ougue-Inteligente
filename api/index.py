@@ -32,7 +32,7 @@ async def painel_acougueiro(request: Request):
         estoque_real = []
         vendas_recentes = []
     
-    return templates.TemplateResponse("acougueiro.html", {"request": request, "estoque": estoque_real, "vendas": vendas_recentes})
+    return templates.TemplateResponse("acougueiro.html", {"request": request, "estoque": estoque_real, "vendas" : vendas_recentes})
 
 # --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/adicionar_estoque")
