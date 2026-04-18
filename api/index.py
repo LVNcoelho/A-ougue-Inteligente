@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
-from database import supabase 
+from .database import supabase 
 
 app = FastAPI()
 
