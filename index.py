@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import JSONResponse
 import os
+import os
 from dotenv import load_dotenv
 
-
-load_dotenv()
-
+if not os.getenv("VERCEL"):
+    load_dotenv()
 from database import supabase 
 
 app = FastAPI()
