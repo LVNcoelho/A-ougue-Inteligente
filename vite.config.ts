@@ -10,8 +10,14 @@ export default defineConfig({
     },
   },
   server: {
+    host: true, // Permite que o Codespaces exponha a porta
+    port: 5173, // Fixa a porta padrão do Vite
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/api': {
+        target: 'http://127.0.0.1:8000', // Usa IP local para evitar problemas de DNS
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
