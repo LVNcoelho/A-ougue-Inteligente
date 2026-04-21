@@ -55,7 +55,7 @@ async def get_estoque():
         }
     except Exception as e:
         return {"status": "erro", "mensagem": "Erro ao ler estoque local"}
-        )
+        
 
 # --- 2. CADASTRAR NOVA CARNE ---
 @app.post("/api/adicionar_estoque")
