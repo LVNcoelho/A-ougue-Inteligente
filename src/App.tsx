@@ -11,18 +11,27 @@ import {
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [estoque, setEstoque] = useState([]);
-  const [vendas, setVendas] = useState([]);
+  const [estoque, setEstoque] = useState([
+    // Exemplo de dados iniciais para a demonstração não abrir vazia
+    { id: 1, nome: 'Músculo', quantidade: 10, preco_quilo: 28.90, validade: '22/04/2026' },
+    { id: 2, nome: 'Patinho', quantidade: 5, preco_quilo: 35.00, validade: '24/04/2026' },
+    { id: 3, nome: 'Acém', quantidade: 15, preco_quilo: 25.50, validade: '30/04/2026' }
+  ]);
+  const [vendas, setVendas] = useState([
+    { id: 1, cliente_nome: 'João Silva', itens_comprados: '2kg Picanha', valor_total: '140,00', cliente_whatsapp: '91988776655' }
+  ]);
   const [insights, setInsights] = useState<string[]>([]);
   const [loadingIA, setLoadingIA] = useState(false);
 
-  // 1. BUSCAR DADOS (ESTOQUE E VENDAS)
+  // 1. BUSCAR DADOS (Simulado ou Real)
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/acougueiro'); // Sua rota FastAPI
-      const data = await res.json();
-      setEstoque(data.estoque || []);
-      setVendas(data.vendas || []);
+      // Quando seu banco estiver pronto, aponte para: 
+      // const res = await fetch('https://fictional-bassoon-696954xrg9vcxxr-8000.app.github.dev/api/acougueiro');
+      // const data = await res.json();
+      // setEstoque(data.estoque || []);
+      // setVendas(data.vendas || []);
+      console.log("Dados carregados com sucesso.");
     } catch (err) {
       console.error("Erro ao carregar dados:", err);
     }
@@ -32,15 +41,43 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
-  // 2. GERAR INSIGHTS IA
+  // 2. GERAR INSIGHTS IA (A Mágica da Conecta TI)
   const gerarInsights = async () => {
     setLoadingIA(true);
+    
+    // Link direto da sua API no Codespaces (removendo o /docs)
+    const API_URL = "https://fictional-bassoon-696954xrg9vcxxr-8000.app.github.dev";
+
+    // Pegamos os dados que estão no estado do React para enviar para o Gemini
+    const payload = {
+      "data_atual": "21/04/2026",
+      "itens_estoque": estoque.map(item => ({
+        "corte": item.nome,
+        "kg": item.quantidade,
+        "validade": item.validade
+      }))
+    };
+
     try {
-      const res = await fetch('/api/gerar_insights');
+      const res = await fetch(`${API_URL}/agente/balcao`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(payload)
+      });
+
       const data = await res.json();
-      setInsights(data.avisos || []);
+      
+      if (data.status === "sucesso") {
+        // Colocamos o insight dentro do array para renderizar no seu card amarelo
+        setInsights([data.insights]);
+      } else {
+        setInsights(["A IA encontrou um problema ao analisar o estoque. Verifique os dados."]);
+      }
     } catch (err) {
-      setInsights(["Erro ao conectar com a IA em Castanhal."]);
+      console.error("Erro na conexão:", err);
+      setInsights(["Erro: Certifique-se que o Codespaces está rodando e a porta 8000 está Pública."]);
     }
     setLoadingIA(false);
   };
@@ -86,7 +123,7 @@ const App: React.FC = () => {
           <button 
             onClick={gerarInsights}
             disabled={loadingIA}
-            className="w-full bg-gradient-to-br from-amber-400 to-orange-500 text-white p-4 rounded-3xl font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-100 hover:scale-105 transition-transform"
+            className="w-full bg-gradient-to-br from-amber-400 to-orange-500 text-white p-4 rounded-3xl font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-100 hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
           >
             <BrainCircuit size={20} />
             {loadingIA ? 'PENSANDO...' : 'IA INSIGHTS'}
@@ -94,20 +131,25 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      {/* CONTEÚDO */}
+      {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 ml-72 p-12">
         <div className="max-w-5xl mx-auto">
           
-          {/* ÁREA DE INSIGHTS DA IA */}
+          {/* ÁREA DE INSIGHTS DA IA - Onde a mágica aparece */}
           {insights.length > 0 && (
-            <div className="mb-8 bg-amber-50 border-2 border-amber-200 p-6 rounded-[32px] flex items-start gap-4">
+            <div className="mb-8 bg-amber-50 border-2 border-amber-200 p-6 rounded-[32px] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="bg-amber-400 p-2 rounded-xl text-white">
                 <BrainCircuit size={24} />
               </div>
-              <div>
-                <h4 className="font-black text-amber-800 uppercase text-xs tracking-wider mb-2">Sugestões para SJP/Castanhal</h4>
-                {insights.map((txt, i) => <p key={i} className="text-amber-900 font-bold">{txt}</p>)}
+              <div className="flex-1">
+                <h4 className="font-black text-amber-800 uppercase text-xs tracking-wider mb-2">Sugestões de Vendas Estratégicas</h4>
+                {insights.map((txt, i) => (
+                  <p key={i} className="text-amber-900 font-bold whitespace-pre-wrap leading-relaxed">
+                    {txt}
+                  </p>
+                ))}
               </div>
+              <button onClick={() => setInsights([])} className="text-amber-400 hover:text-amber-600 font-black">X</button>
             </div>
           )}
 
@@ -116,7 +158,7 @@ const App: React.FC = () => {
               <header className="flex justify-between items-end">
                 <div>
                   <h2 className="text-4xl font-black text-gray-800">Status do Balcão</h2>
-                  <p className="text-gray-400 font-medium">Veja como está o seu estoque hoje</p>
+                  <p className="text-gray-400 font-medium">Análise de estoque em tempo real</p>
                 </div>
                 <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
                   <div className="bg-green-100 p-2 rounded-xl text-green-600"><TrendingUp size={24} /></div>
@@ -144,7 +186,7 @@ const App: React.FC = () => {
                       <span className="text-3xl font-black text-gray-800">{item.quantidade}</span>
                       <span className="text-gray-400 font-bold uppercase text-xs">Kg em estoque</span>
                     </div>
-                    <p className="mt-4 text-green-600 font-black">R$ {item.preco_quilo}/kg</p>
+                    <p className="mt-4 text-green-600 font-black">R$ {item.preco_quilo.toFixed(2)}/kg</p>
                   </div>
                 ))}
               </div>
@@ -172,8 +214,8 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* AS OUTRAS TABS SEGUEM O MESMO PADRÃO... */}
           {activeTab === 'vendas' && <div className="text-center py-20 font-bold text-gray-400 uppercase">Módulo de Vendas em Construção...</div>}
+          {activeTab === 'estoque' && <div className="text-center py-20 font-bold text-gray-400 uppercase">Módulo de Abastecimento em Construção...</div>}
           
         </div>
       </main>
