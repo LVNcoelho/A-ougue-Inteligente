@@ -11,29 +11,33 @@ import {
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [estoque, setEstoque] = useState([
-    // Exemplo de dados iniciais para a demonstração não abrir vazia
-    { id: 1, nome: 'Músculo', quantidade: 10, preco_quilo: 28.90, validade: '22/04/2026' },
-    { id: 2, nome: 'Patinho', quantidade: 5, preco_quilo: 35.00, validade: '24/04/2026' },
-    { id: 3, nome: 'Acém', quantidade: 15, preco_quilo: 25.50, validade: '30/04/2026' }
-  ]);
-  const [vendas, setVendas] = useState([
-    { id: 1, cliente_nome: 'João Silva', itens_comprados: '2kg Picanha', valor_total: '140,00', cliente_whatsapp: '91988776655' }
-  ]);
+  const [estoque, setEstoque] = useState<any[]>([]); // Começa vazio para carregar do banco
+  const [vendas, setVendas] = useState<any[]>([]);
   const [insights, setInsights] = useState<string[]>([]);
   const [loadingIA, setLoadingIA] = useState(false);
 
-  // 1. BUSCAR DADOS (Simulado ou Real)
+  // Link base da sua API no Codespaces
+  const API_URL = "https://upgraded-yodel-jj7gjjwj4x9525q5g-8000.app.github.dev";
+
+  // 1. BUSCAR DADOS REAIS DO SUPABASE (Via sua API no Codespaces)
   const fetchData = async () => {
     try {
-      // Quando seu banco estiver pronto, aponte para: 
-      // const res = await fetch('https://fictional-bassoon-696954xrg9vcxxr-8000.app.github.dev/api/acougueiro');
-      // const data = await res.json();
-      // setEstoque(data.estoque || []);
-      // setVendas(data.vendas || []);
-      console.log("Dados carregados com sucesso.");
+      const res = await fetch(`${API_URL}/api/acougueiro`);
+      const data = await res.json();
+      
+      // Se o banco retornar dados, ele atualiza a tela
+      if (data.estoque) {
+        setEstoque(data.estoque);
+        setVendas(data.vendas || []);
+        console.log("Dados do Supabase carregados!");
+      }
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      console.error("Erro ao carregar dados do banco:", err);
+      // Se der erro, mantém os dados de exemplo apenas para a tela não ficar branca
+      setEstoque([
+        { id: 1, nome: 'Músculo (Exemplo)', quantidade: 10, preco_quilo: 28.90, validade: '22/04/2026' },
+        { id: 2, nome: 'Patinho (Exemplo)', quantidade: 5, preco_quilo: 35.00, validade: '24/04/2026' }
+      ]);
     }
   };
 
@@ -45,16 +49,13 @@ const App: React.FC = () => {
   const gerarInsights = async () => {
     setLoadingIA(true);
     
-    // Link direto da sua API no Codespaces (removendo o /docs)
-    const API_URL = "https://upgraded-yodel-jj7gjjwj4x9525q5g-8000.app.github.dev";
-
-    // Pegamos os dados que estão no estado do React para enviar para o Gemini
+    // Pegamos os dados REAIS que vieram do banco para enviar para o Gemini
     const payload = {
       "data_atual": "21/04/2026",
       "itens_estoque": estoque.map(item => ({
         "corte": item.nome,
         "kg": item.quantidade,
-        "validade": item.validade
+        "validade": item.validade || "Não informada"
       }))
     };
 
@@ -70,10 +71,9 @@ const App: React.FC = () => {
       const data = await res.json();
       
       if (data.status === "sucesso") {
-        // Colocamos o insight dentro do array para renderizar no seu card amarelo
         setInsights([data.insights]);
       } else {
-        setInsights(["A IA encontrou um problema ao analisar o estoque. Verifique os dados."]);
+        setInsights(["A IA está analisando, mas os dados de estoque parecem incompletos."]);
       }
     } catch (err) {
       console.error("Erro na conexão:", err);
@@ -135,7 +135,7 @@ const App: React.FC = () => {
       <main className="flex-1 ml-72 p-12">
         <div className="max-w-5xl mx-auto">
           
-          {/* ÁREA DE INSIGHTS DA IA - Onde a mágica aparece */}
+          {/* ÁREA DE INSIGHTS DA IA */}
           {insights.length > 0 && (
             <div className="mb-8 bg-amber-50 border-2 border-amber-200 p-6 rounded-[32px] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="bg-amber-400 p-2 rounded-xl text-white">
@@ -171,24 +171,28 @@ const App: React.FC = () => {
 
               {/* GRID DE CARNES */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {estoque.map((item: any) => (
-                  <div key={item.id} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl transition-shadow group">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="bg-gray-50 p-3 rounded-2xl group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
-                        <Beef size={28} />
+                {estoque.length > 0 ? (
+                  estoque.map((item: any) => (
+                    <div key={item.id} className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl transition-shadow group">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="bg-gray-50 p-3 rounded-2xl group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                          <Beef size={28} />
+                        </div>
+                        <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase ${item.quantidade < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                          {item.quantidade < 10 ? 'Baixo' : 'Normal'}
+                        </span>
                       </div>
-                      <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase ${item.quantidade < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                        {item.quantidade < 10 ? 'Baixo' : 'Normal'}
-                      </span>
+                      <h3 className="text-xl font-black text-gray-800 uppercase mb-1">{item.nome}</h3>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-gray-800">{item.quantidade}</span>
+                        <span className="text-gray-400 font-bold uppercase text-xs">Kg em estoque</span>
+                      </div>
+                      <p className="mt-4 text-green-600 font-black">R$ {item.preco_quilo?.toFixed(2)}/kg</p>
                     </div>
-                    <h3 className="text-xl font-black text-gray-800 uppercase mb-1">{item.nome}</h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-gray-800">{item.quantidade}</span>
-                      <span className="text-gray-400 font-bold uppercase text-xs">Kg em estoque</span>
-                    </div>
-                    <p className="mt-4 text-green-600 font-black">R$ {item.preco_quilo.toFixed(2)}/kg</p>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-10 text-gray-400 font-bold">Carregando estoque do Supabase...</div>
+                )}
               </div>
 
               {/* ÚLTIMAS VENDAS */}
@@ -197,18 +201,22 @@ const App: React.FC = () => {
                   <History className="text-gray-400" /> Histórico Recente
                 </h3>
                 <div className="space-y-4">
-                  {vendas.map((v: any) => (
-                    <div key={v.id} className="flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl transition-colors border-b border-gray-50 last:border-0">
-                      <div>
-                        <p className="font-black text-gray-800">{v.cliente_nome}</p>
-                        <p className="text-xs text-gray-400 font-bold uppercase">{v.itens_comprados}</p>
+                  {vendas.length > 0 ? (
+                    vendas.map((v: any) => (
+                      <div key={v.id} className="flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl transition-colors border-b border-gray-50 last:border-0">
+                        <div>
+                          <p className="font-black text-gray-800">{v.cliente_nome}</p>
+                          <p className="text-xs text-gray-400 font-bold uppercase">{v.itens_comprados}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-black text-red-600">R$ {v.valor_total}</p>
+                          <p className="text-[10px] text-gray-300 font-bold tracking-widest uppercase">WhatsApp: {v.cliente_whatsapp}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-black text-red-600">R$ {v.valor_total}</p>
-                        <p className="text-[10px] text-gray-300 font-bold tracking-widest uppercase">WhatsApp: {v.cliente_whatsapp}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-center text-gray-400 font-bold">Nenhuma venda registrada hoje.</p>
+                  )}
                 </div>
               </div>
             </div>
