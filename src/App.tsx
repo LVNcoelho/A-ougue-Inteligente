@@ -16,10 +16,10 @@ const App: React.FC = () => {
   const [insights, setInsights] = useState<string[]>([]);
   const [loadingIA, setLoadingIA] = useState(false);
 
-  // Link base da sua API no Codespaces
+  // Link base da API no Codespaces
   const API_URL = "https://upgraded-yodel-jj7gjjwj4x9525q5g-8000.app.github.dev";
 
-  // 1. BUSCAR DADOS REAIS DO SUPABASE (Via sua API no Codespaces)
+  // 1. BUSCAR DADOS REAIS DO SUPABASE 
   const fetchData = async () => {
     try {
       const res = await fetch(`${API_URL}/api/acougueiro`);
@@ -49,7 +49,7 @@ const App: React.FC = () => {
   const gerarInsights = async () => {
     setLoadingIA(true);
     
-    // Pegamos os dados REAIS que vieram do banco para enviar para o Gemini
+    //  dados REAIS que vieram do banco para enviar para o Gemini
     const payload = {
       "data_atual": "21/04/2026",
       "itens_estoque": estoque.map(item => ({
