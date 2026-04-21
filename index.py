@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import JSONResponse
-import os
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 
@@ -9,6 +9,13 @@ if not os.getenv("VERCEL"):
 from database import supabase 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- 1. BUSCAR DADOS (ESTOQUE E VENDAS) ---
 @app.get("/api/acougueiro")
