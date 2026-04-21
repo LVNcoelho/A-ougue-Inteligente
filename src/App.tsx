@@ -46,7 +46,7 @@ const App: React.FC = () => {
     setLoadingIA(true);
     
     // Link direto da sua API no Codespaces (removendo o /docs)
-    const API_URL = "https://fictional-bassoon-696954xrg9vcxxr-8000.app.github.dev";
+    const API_URL = "https://upgraded-yodel-jj7gjjwj4x9525q5g-8000.app.github.dev";
 
     // Pegamos os dados que estão no estado do React para enviar para o Gemini
     const payload = {
