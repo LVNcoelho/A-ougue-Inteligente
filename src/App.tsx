@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const [loadingIA, setLoadingIA] = useState(false);
 
   // Link base da API no Codespaces
-  const API_URL = "https://upgraded-yodel-jj7gjjwj4x9525q5g-8000.app.github.dev";
+  const API_URL = "https://congenial-telegram-pjw6jjqjgxrjc5wj-8000.app.github.dev";
 
   // 1. BUSCAR DADOS REAIS DO SUPABASE 
   const fetchData = async () => {
