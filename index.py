@@ -40,19 +40,21 @@ class DadosBalcao(BaseModel):
 
 # --- 1. BUSCAR DADOS (ESTOQUE E VENDAS) ---
 @app.get("/api/acougueiro")
-async def painel_acougueiro():
+async def get_estoque():
     try:
-        res_estoque = supabase.table('estoque').select("*").execute()
-        res_vendas = supabase.table('historico_pedidos').select("*").order('data_venda', desc=True).limit(5).execute()
+        
+        df = pd.read_csv('estoque.csv')
+        estoque_lista = df.to_dict(orient='records')
         
         return {
-            "estoque": res_estoque.data, 
-            "vendas": res_vendas.data
+            "status": "sucesso",
+            "estoque": estoque_lista,
+            "vendas": [
+                {"id": 1, "cliente_nome": "Cliente Teste SJP", "itens_comprados": "2kg Picanha", "valor_total": "130.00"}
+            ]
         }
     except Exception as e:
-        return JSONResponse(
-            status_code=500, 
-            content={"erro": f"Erro ao carregar dados: {str(e)}", "estoque": [], "vendas": []}
+        return {"status": "erro", "mensagem": "Erro ao ler estoque local"}
         )
 
 # --- 2. CADASTRAR NOVA CARNE ---
